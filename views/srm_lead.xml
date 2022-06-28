@@ -1,0 +1,104 @@
+<odoo>
+
+        <record id="view_srm_lead_kanban" model="ir.ui.view">
+            <field name="name">srm.lead.kanban</field>
+            <field name="model">srm.lead</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_mobile" archivable="false" js_class="crm_kanban" sample="1">
+                    <field name="name"/>
+                    <field name="contact_name"/>
+                    <field name="priority"/>
+                    <!--field name="tag_ids"/-->
+                    <field name="user_id"/>
+                    <field name="activity_ids"/>
+                    <field name="activity_state"/>
+                    <progressbar field="activity_state" colors='{"planned": "success", "today": "warning", "overdue": "danger"}'/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_content oe_kanban_global_click">
+                                <div>
+                                    <strong class="o_kanban_record_title"><span><field name="name"/></span></strong>
+                                </div>
+                                <div>
+                                    <span class="o_kanban_record_subtitle"><field name="contact_name"/></span>
+                                </div>
+                                <!--div>
+                                  <field name="tag_ids"/>
+                                </div-->
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="priority" widget="priority"/>
+                                        <div class="o_kanban_inline_block">
+                                            <field name="activity_ids" widget="kanban_activity"/>
+                                        </div>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="user_id" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+	<record model="ir.ui.view" id="srm_lead_tree">
+	            <field name="name">srm.lead.list</field>
+	            <field name="model">srm.lead</field>
+	            <field name="arch" type="xml">
+	                <tree>
+	                        <field name="name" string="Contacto" />
+	                </tree>
+	            </field>
+	</record>
+
+        <record model="ir.ui.view" id="srm_lead_form">
+                    <field name="name">srm.lead.form</field>
+                    <field name="model">srm.lead</field>
+                    <field name="arch" type="xml">
+                        <form>
+				<sheet>
+					<field name="name" />
+					<field name="stage_id" />
+				</sheet>
+                        </form>
+                    </field>
+        </record>
+
+	<!-- MENU -->
+
+	<menuitem
+         id="menu_srm"
+         name="SRM"
+         groups="sales_team.group_sale_salesman,sales_team.group_sale_manager"
+         sequence="7"/>
+
+        <menuitem
+        id="srm_menu_purchase"
+        name="Compras"
+        parent="menu_srm"
+        sequence="1"/>
+
+        <menuitem
+        id="purchase_team_menu_team_pipeline"
+        name="Pipeline"
+        parent="srm_menu_purchase"
+        action="action_srm_menu_parent"
+        groups="sales_team.group_sale_manager"
+        sequence="4"/>
+
+        <record id="action_srm_menu_parent" model="ir.actions.act_window">
+	   <field name="name">SRM</field>
+	   <field name="res_model">srm.lead</field>
+	   <field name="view_mode">kanban,form</field>
+	   <field name="view_id" ref="view_srm_lead_kanban"/>
+	   <field name="help" type="html">
+	       <p class="o_view_nocontent_smiling_face">
+	           SRM Lead
+	       </p>
+	   </field>
+	</record>
+
+</odoo>

@@ -16,13 +16,13 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'purchase', 'mail', 'utm', 'phone', 'format'],
+    'depends': ['base', 'purchase', 'mail', 'utm'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/views.xml',
-        'views/templates.xml',
+        'data/srm_stage_data.xml',
+        'views/srm_lead.xml',
     ],
     # only loaded in demonstration mode
     'demo': [],
