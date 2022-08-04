@@ -86,7 +86,7 @@ class Srm(models.Model):
         'Last Stage Update', index=True, readonly=True, store=True)
     date_conversion = fields.Datetime('Conversion Date', readonly=True)
     date_deadline = fields.Date('Expected Closing', help="Estimate of the date on which the opportunity will be won.")
-    # Customer / contact
+    # Supplier / contact
     partner_id = fields.Many2one(
         'res.partner', string='Customer', index=True, tracking=10,
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
@@ -102,7 +102,8 @@ class Srm(models.Model):
     email_from = fields.Char(
         'Email', tracking=40, index=True, inverse='_inverse_email_from', readonly=False, store=True)
     phone = fields.Char(
-        'Phone', tracking=50, inverse='_inverse_phone', readonly=False, store=True)
+        'Phone', tracking=50,
+        compute='_compute_phone', inverse='_inverse_phone', readonly=False, store=True)
     mobile = fields.Char('Mobile', readonly=False, store=True)
     phone_mobile_search = fields.Char('Phone/Mobile', store=False, search='_search_phone_mobile_search')
     phone_state = fields.Selection([
@@ -138,3 +139,180 @@ class Srm(models.Model):
     _sql_constraints = [
         ('check_probability', 'check(probability >= 0 and probability <= 100)', 'The probability of closing the deal should be between 0% and 100%!')
     ]
+
+
+    @api.depends('partner_id.phone')
+    def _compute_phone(self):
+        for lead in self:
+            if lead.partner_id.phone and lead._get_partner_phone_update():
+                lead.phone = lead.partner_id.phone
+
+    def _inverse_phone(self):
+        for lead in self:
+            if lead._get_partner_phone_update():
+                lead.partner_id.phone = lead.phone
+
+
+    def _search_phone_mobile_search(self, operator, value):
+        if len(value) <= 2:
+            raise UserError(_('Please enter at least 3 digits when searching on phone / mobile.'))
+
+        query = f"""
+                SELECT model.id
+                FROM {self._table} model
+                WHERE REGEXP_REPLACE(model.phone, '[^\d+]+', '', 'g') SIMILAR TO CONCAT(%s, REGEXP_REPLACE(%s, '\D+', '', 'g'), '%%')
+                  OR REGEXP_REPLACE(model.mobile, '[^\d+]+', '', 'g') SIMILAR TO CONCAT(%s, REGEXP_REPLACE(%s, '\D+', '', 'g'), '%%')
+            """
+
+        # searching on +32485112233 should also finds 00485112233 (00 / + prefix are both valid)
+        # we therefore remove it from input value and search for both of them in db
+        if value.startswith('+') or value.startswith('00'):
+            if value.startswith('00'):
+                value = value[2:]
+            starts_with = '00|\+'
+        else:
+            starts_with = '%'
+
+        self._cr.execute(query, (starts_with, value, starts_with, value))
+        res = self._cr.fetchall()
+        if not res:
+            return [(0, '=', 1)]
+        return [('id', 'in', [r[0] for r in res])]
+
+    # ------------------------------------------------------------
+    # ACTIONS
+    # ------------------------------------------------------------
+
+    def toggle_active(self):
+        """ When archiving: mark probability as 0. When re-activating
+        update probability again, for leads and opportunities. """
+        res = super(Lead, self).toggle_active()
+        activated = self.filtered(lambda lead: lead.active)
+        archived = self.filtered(lambda lead: not lead.active)
+        if activated:
+            activated.write({'lost_reason': False})
+            activated._compute_probabilities()
+        if archived:
+            archived.write({'probability': 0, 'automated_probability': 0})
+        return res
+
+    def action_set_lost(self, **additional_values):
+        """ Lost semantic: probability = 0 or active = False """
+        res = self.action_archive()
+        if additional_values:
+            self.write(dict(additional_values))
+        return res
+
+    def action_set_won(self):
+        """ Won semantic: probability = 100 (active untouched) """
+        self.action_unarchive()
+        # group the leads by team_id, in order to write once by values couple (each write leads to frequency increment)
+        leads_by_won_stage = {}
+        for lead in self:
+            stage_id = lead._stage_find(domain=[('is_won', '=', True)])
+            if stage_id in leads_by_won_stage:
+                leads_by_won_stage[stage_id] |= lead
+            else:
+                leads_by_won_stage[stage_id] = lead
+        for won_stage_id, leads in leads_by_won_stage.items():
+            leads.write({'stage_id': won_stage_id.id, 'probability': 100})
+        return True
+
+    def action_set_automated_probability(self):
+        self.write({'probability': self.automated_probability})
+
+    def action_set_won_rainbowman(self):
+        self.ensure_one()
+        self.action_set_won()
+
+        message = self._get_rainbowman_message()
+        if message:
+            return {
+                'effect': {
+                    'fadeout': 'slow',
+                    'message': message,
+                    'img_url': '/web/image/%s/%s/image_1024' % (self.team_id.user_id._name, self.team_id.user_id.id) if self.team_id.user_id.image_1024 else '/web/static/src/img/smile.svg',
+                    'type': 'rainbow_man',
+                }
+            }
+        return True
+
+    def get_rainbowman_message(self):
+        self.ensure_one()
+        if self.stage_id.is_won:
+            return self._get_rainbowman_message()
+        return False
+
+    def _get_rainbowman_message(self):
+        message = False
+        if self.user_id and self.team_id and self.expected_revenue:
+            self.flush()  # flush fields to make sure DB is up to date
+            query = """
+                SELECT
+                    SUM(CASE WHEN user_id = %(user_id)s THEN 1 ELSE 0 END) as total_won,
+                    MAX(CASE WHEN date_closed >= CURRENT_DATE - INTERVAL '30 days' AND user_id = %(user_id)s THEN expected_revenue ELSE 0 END) as max_user_30,
+                    MAX(CASE WHEN date_closed >= CURRENT_DATE - INTERVAL '7 days' AND user_id = %(user_id)s THEN expected_revenue ELSE 0 END) as max_user_7,
+                    MAX(CASE WHEN date_closed >= CURRENT_DATE - INTERVAL '30 days' AND team_id = %(team_id)s THEN expected_revenue ELSE 0 END) as max_team_30,
+                    MAX(CASE WHEN date_closed >= CURRENT_DATE - INTERVAL '7 days' AND team_id = %(team_id)s THEN expected_revenue ELSE 0 END) as max_team_7
+                FROM crm_lead
+                WHERE
+                    type = 'opportunity'
+                AND
+                    active = True
+                AND
+                    probability = 100
+                AND
+                    DATE_TRUNC('year', date_closed) = DATE_TRUNC('year', CURRENT_DATE)
+                AND
+                    (user_id = %(user_id)s OR team_id = %(team_id)s)
+            """
+            self.env.cr.execute(query, {'user_id': self.user_id.id,
+                                        'team_id': self.team_id.id})
+            query_result = self.env.cr.dictfetchone()
+
+            if query_result['total_won'] == 1:
+                message = _('Go, go, go! Congrats for your first deal.')
+            elif query_result['max_team_30'] == self.expected_revenue:
+                message = _('Boom! Team record for the past 30 days.')
+            elif query_result['max_team_7'] == self.expected_revenue:
+                message = _('Yeah! Deal of the last 7 days for the team.')
+            elif query_result['max_user_30'] == self.expected_revenue:
+                message = _('You just beat your personal record for the past 30 days.')
+            elif query_result['max_user_7'] == self.expected_revenue:
+                message = _('You just beat your personal record for the past 7 days.')
+        return message
+
+    def action_schedule_meeting(self):
+        """ Open meeting's calendar view to schedule meeting on current opportunity.
+            :return dict: dictionary value for created Meeting view
+        """
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id("calendar.action_calendar_event")
+        partner_ids = self.env.user.partner_id.ids
+        if self.partner_id:
+            partner_ids.append(self.partner_id.id)
+        current_opportunity_id = self.id if self.type == 'opportunity' else False
+        action['context'] = {
+            'search_default_opportunity_id': current_opportunity_id,
+            'default_opportunity_id': current_opportunity_id,
+            'default_partner_id': self.partner_id.id,
+            'default_partner_ids': partner_ids,
+            'default_attendee_ids': [(0, 0, {'partner_id': pid}) for pid in partner_ids],
+            'default_team_id': self.team_id.id,
+            'default_name': self.name,
+        }
+        return action
+
+    def action_snooze(self):
+        self.ensure_one()
+        today = date.today()
+        my_next_activity = self.activity_ids.filtered(lambda activity: activity.user_id == self.env.user)[:1]
+        if my_next_activity:
+            if my_next_activity.date_deadline < today:
+                date_deadline = today + timedelta(days=7)
+            else:
+                date_deadline = my_next_activity.date_deadline + timedelta(days=7)
+            my_next_activity.write({
+                'date_deadline': date_deadline
+            })
+        return True

@@ -40,8 +40,8 @@ class Stage(models.Model):
         help='This stage is folded in the kanban view when there are no records in that stage to display.')
 
     # This field for interface only
-    team_count = fields.Integer('team_count', compute='_compute_team_count')
+    #team_count = fields.Integer('team_count', compute='_compute_team_count')
 
-    def _compute_team_count(self):
-        for stage in self:
-            stage.team_count = self.env['crm.team'].search_count([])
+    #def _compute_team_count(self):
+    #    for stage in self:
+    #        stage.team_count = self.env['crm.team'].search_count([])
