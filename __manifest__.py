@@ -23,6 +23,7 @@
         # 'security/ir.model.access.csv',
         'data/srm_stage_data.xml',
         'views/srm_lead.xml',
+        'views/srm_tag.xml',
     ],
     # only loaded in demonstration mode
     'demo': [],
