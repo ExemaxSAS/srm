@@ -1,238 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-        <record id="view_srm_lead_kanban" model="ir.ui.view">
-            <field name="name">srm.lead.kanban</field>
-            <field name="model">srm.lead</field>
-            <field name="priority" eval="100"/>
-            <field name="arch" type="xml">
-               <kanban default_group_by="stage_id" class="o_kanban_small_column o_opportunity_kanban" on_create="quick_create" quick_create_view="crm.quick_create_opportunity_form" archivable="false" sample="1">
-                    <field name="stage_id" options="{&quot;group_by_tooltip&quot;: {&quot;requirements&quot;: &quot;Description&quot;}}"/>
-                    <field name="color"/>
-                    <field name="priority"/>
-                    <field name="expected_revenue"/>
-                    <field name="kanban_state"/>
-                    <field name="activity_date_deadline"/>
-                    <field name="user_email"/>
-                    <field name="user_id"/>
-                    <field name="partner_id"/>
-                    <field name="activity_summary"/>
-                    <field name="active"/>
-                    <field name="company_currency"/>
-                    <field name="activity_state"/>
-                    <field name="activity_ids"/>
-                    <progressbar field="activity_state" colors="{&quot;planned&quot;: &quot;success&quot;, &quot;today&quot;: &quot;warning&quot;, &quot;overdue&quot;: &quot;danger&quot;}" sum_field="expected_revenue" help="This bar allows to filter the opportunities based on scheduled activities."/>
-                    <templates>
-                        <t t-name="kanban-box">
-                            <div t-attf-class="#{!selection_mode ? kanban_color(record.color.raw_value) : ''} oe_kanban_global_click">
-                                <div class="o_dropdown_kanban dropdown">
+    <record id="view_srm_lead_kanban" model="ir.ui.view">
+        <field name="name">srm.lead.kanban</field>
+        <field name="model">srm.lead</field>
+        <field name="priority" eval="100" />
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" class="o_kanban_small_column o_opportunity_kanban" on_create="quick_create" archivable="false" sample="1">
+                <field name="stage_id" options="{&quot;group_by_tooltip&quot;: {&quot;requirements&quot;: &quot;Description&quot;}}" />
+                <field name="color" />
+                <field name="priority" />
+                <field name="expected_revenue" />
+                <field name="kanban_state" />
+                <field name="activity_date_deadline" />
+                <field name="user_email" />
+                <field name="user_id" />
+                <field name="partner_id" />
+                <field name="activity_summary" />
+                <field name="active" />
+                <field name="company_currency" />
+                <field name="activity_state" />
+                <field name="activity_ids" />
+                <progressbar field="activity_state" colors="{&quot;planned&quot;: &quot;success&quot;, &quot;today&quot;: &quot;warning&quot;, &quot;overdue&quot;: &quot;danger&quot;}" sum_field="expected_revenue" help="This bar allows to filter the opportunities based on scheduled activities." />
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="#{!selection_mode ? kanban_color(record.color.raw_value) : ''} oe_kanban_global_click">
+                            <div class="o_dropdown_kanban dropdown">
 
-                                    <a class="dropdown-toggle o-no-caret btn" role="button" data-toggle="dropdown" data-display="static" href="#" aria-label="Dropdown menu" title="Dropdown menu">
-                                        <span class="fa fa-ellipsis-v"/>
-                                    </a>
-                                    <div class="dropdown-menu" role="menu">
-                                        <t t-if="widget.editable"><a role="menuitem" type="edit" class="dropdown-item">Edit</a></t>
-                                        <t t-if="widget.deletable"><a role="menuitem" type="delete" class="dropdown-item">Delete</a></t>
-                                        <ul class="oe_kanban_colorpicker" data-field="color"/>
-                                    </div>
+                                <a class="dropdown-toggle o-no-caret btn" role="button" data-toggle="dropdown" data-display="static" href="#" aria-label="Dropdown menu" title="Dropdown menu">
+                                    <span class="fa fa-ellipsis-v" />
+                                </a>
+                                <div class="dropdown-menu" role="menu">
+                                    <t t-if="widget.editable">
+                                        <a role="menuitem" type="edit" class="dropdown-item">Edit</a>
+                                    </t>
+                                    <t t-if="widget.deletable">
+                                        <a role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                                    </t>
+                                    <ul class="oe_kanban_colorpicker" data-field="color" />
                                 </div>
-                                <div class="oe_kanban_content">
-                                    <div class="o_kanban_record_title">
-                                        <strong><field name="name"/></strong>
-                                    </div>
-                                    <div class="o_kanban_record_subtitle">
-                                        <t t-if="record.expected_revenue.raw_value">
-                                            <field name="expected_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/>
-                                            <span t-if="record.recurring_revenue and record.recurring_revenue.raw_value"> + </span>
-                                        </t>
-                                        <t t-if="record.recurring_revenue and record.recurring_revenue.raw_value">
-                                            <field name="recurring_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/>
-                                      
-                                        </t>
-                                    </div>
-                                    <div>
-                                        <span t-if="record.partner_id.value" t-esc="record.partner_id.value"/>
-                                    </div>
-                                    <div>
-                           
-                                    </div>
-                                    <div class="o_kanban_record_bottom">
-                                        <div class="oe_kanban_bottom_left">
-                                            <field name="priority" widget="priority" groups="base.group_user"/>
-                                            <field name="activity_ids" widget="kanban_activity"/>
-                                        </div>
-                                        <div class="oe_kanban_bottom_right">
-                                            <field name="user_id" widget="many2one_avatar_user"/>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="oe_clear"/>
                             </div>
-                        </t>
-                    </templates>
-                </kanban>
-            </field>
-        </record>
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_title">
+                                    <strong>
+                                        <field name="name" />
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_subtitle">
+                                    <t t-if="record.expected_revenue.raw_value">
+                                        <field name="expected_revenue" widget="monetary" options="{'currency_field': 'company_currency'}" />
+                                        <span t-if="record.recurring_revenue and record.recurring_revenue.raw_value"> + </span>
+                                    </t>
+                                    <t t-if="record.recurring_revenue and record.recurring_revenue.raw_value">
+                                        <field name="recurring_revenue" widget="monetary" options="{'currency_field': 'company_currency'}" />
 
-
-
-	<record model="ir.ui.view" id="srm_lead_tree">
-	            <field name="name">srm.lead.list</field>
-	            <field name="model">srm.lead</field>
-	            <field name="arch" type="xml">
-	                <tree>
-	                        <field name="name" string="Contacto" />
-	                </tree>
-	            </field>
-	</record>
-
-        <record model="ir.ui.view" id="srm_lead_form">
-                    <field name="name">srm.lead.form</field>
-                    <field name="model">srm.lead</field>
-                    <field name="arch" type="xml">
-                        <form>
-                            <div class="text-center alert alert-primary oe_edit_only" role="alert" attrs="{'invisible': ['|', ('ribbon_message', '=', False), ('ribbon_message', '=', '')]}">
-                                <field name="ribbon_message"/>
+                                    </t>
+                                </div>
+                                <div>
+                                    <span t-if="record.partner_id.value" t-esc="record.partner_id.value" />
+                                </div>
+                                <div></div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="priority" widget="priority" groups="base.group_user" />
+                                        <field name="activity_ids" widget="kanban_activity" />
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="user_id" widget="many2one_avatar_user" />
+                                    </div>
+                                </div>
                             </div>
-            				<sheet>
-                      <h1><field name="name" placeholder="e.g. Product Pricing"/></h1>
-                                <field name="stage_id"/>
+                            <div class="oe_clear" />
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
 
-                                <div class="o_row">
-                                        <field name="company_currency" invisible="1"/>
-                                        <field name="expected_revenue" class="oe_inline" widget="monetary" options="{'currency_field': 'company_currency'}"/>
-                                        <span class="oe_grey p-2" groups="crm.group_use_recurring_revenues"> + </span>
-                                        <span class="oe_grey p-2" groups="!crm.group_use_recurring_revenues"> at </span>
-                                    </div>
-                    <div class="col">
-                                    <div class="oe_edit_only d-flex align-items-center">
-                                        <label for="probability"/>
-                                        <button class="btn btn-link" name="action_set_automated_probability" type="object" attrs="{'invisible': [('is_automated_probability', '=', True)]}">
-                                            <i class="fa fa-gear" role="img" title="Switch to automatic probability" aria-label="Switch to automatic probability"/>
-                                        </button>
-                                        <small class="oe_grey h6 mb0" attrs="{'invisible': [('is_automated_probability', '=', True)]}">
-                                            <field class="mb0" name="automated_probability" force_save="1"/> %
-                                        </small>
-                                    </div>
-                                    <div id="probability" class="o_row d-flex">
-                                        <field name="is_automated_probability" invisible="1"/>
-                                        <field name="probability" widget="float" class="oe_inline"/>
-                                        <span class="oe_grey"> %</span>
-                                    </div>
-                                </div>
-                      <group name="lead_partner" >
-                                <!-- Preload all the partner's information -->
-                        
-                                <field name="partner_name"/>
-                                <label for="street" string="Address"/>
-                                <div class="o_address_format">
-                                    <field name="street" placeholder="Street..." class="o_address_street"/>
-                                    <field name="street2" placeholder="Street 2..." class="o_address_street"/>
-                                    <field name="city" placeholder="City" class="o_address_city"/>
-                                    <field name="state_id" class="o_address_state" placeholder="State" options="{&quot;no_open&quot;: True}"/>
-                                    <field name="zip" placeholder="ZIP" class="o_address_zip"/>
-                                    <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
-                                </div>
-                                <field name="website" widget="url" placeholder="e.g. https://www.odoo.com"/>
-                                <field name="lang_id"/>
-                            </group>
-              <group name="lead_info" >
-                                <label for="contact_name"/>
-                                <div class="o_row">
-                                    <field name="contact_name"/>
-                                    <field name="title" placeholder="Title" domain="[]" options="{&quot;no_open&quot;: True}"/>
-                                </div>
-                               
-                                <field name="email_state" invisible="1"/>
-                                <field name="phone_state" invisible="1"/>
-                                <field name="email_cc" groups="base.group_no_one"/>
-                                <field name="function"/>
-                                <label for="phone_group_lead_info" class="oe_inline"/>
+
+    <record model="ir.ui.view" id="srm_lead_tree">
+        <field name="name">srm.lead.list</field>
+        <field name="model">srm.lead</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" string="Contacto" />
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="srm_lead_form">
+        <field name="name">srm.lead.form</field>
+        <field name="model">srm.lead</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button string="Nueva solicitud" name="action_sale_quotations_new" type="object" class="oe_highlight" />
+                    <field name="active" invisible="1" />
+                    <field name="type" invisible="1" />
+                    <!-- TODO arreglar barra de estados como se ve en CRM -->
+                    <field name="stage_id" statusbar_visible="1,2" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}" attrs="{'invisible': ['|', ('active', '=', False), ('type', '=', 'lead')]}" />
+                </header>
+                <sheet>
+                    <h1>
+                        <field name="name" placeholder="Ejemplo: Propuesta de suministro" />
+                    </h1>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-2" >
+                                <field name="company_currency" invisible="1" />
+                                <label for="expected_revenue" class="oe_inline" />
                                 <div class="o_row o_row_readonly">
-                                    <field name="phone" id="phone_group_lead_info" widget="phone"/>
+                                    <h2>
+                                        <field name="expected_revenue" placeholder="Ganancia esperada" class="oe_inline" widget="monetary" options="{'currency_field': 'company_currency'}" />
+                                    </h2>
                                 </div>
-                                <label for="mobile" class="oe_inline"/>
+                            </div>
+                            <div class="col-1">
+                            </div>
+                            <div class="col-3">
+                                <field name="is_automated_probability" invisible="1" />
+                                <label for="probability" class="oe_inline" />
                                 <div class="o_row o_row_readonly">
-                                   <field name="mobile" widget="phone" string="Mobile"/>
+
+                                <h2>
+                                    <field name="probability" placeholder="Probabilidad" widget="float" class="oe_inline" />%
+                                </h2>
                                 </div>
-                            </group>
-                             <notebook>
-                            <page string="Internal Notes" name="internal_notes">
-                                <field name="description" placeholder="Add a description..."/>
-                            </page>
-                            <page name="extra" string="Extra Info" >
-                                <group>
-                                    <group string="Email" groups="base.group_no_one">
-                                        <field name="message_bounce" readonly="1"/>
-                                    </group>
-                                    <group string="Tracking" name="categorization">
-                                        <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
-                                        <field name="campaign_id"/>
-                                        <field name="medium_id"/>
-                                        <field name="source_id"/>
-                                        <field name="referred"/>
-                                    </group>
-                                    <group string="Analysis">
-                                        <field name="date_open"/>
-                                        <field name="date_closed"/>
-                                    </group>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group name="lead_partner">
+                            <!-- Preload all the partner's information -->
+
+                            <field name="partner_id" />
+                            <field name="email_from" />
+                            <field name="phone" />
+
+
+                            <label for="street" string="Dirección" />
+                            <div class="o_address_format">
+                                <field name="street" placeholder="Calle..." class="o_address_street" />
+                                <field name="street2" placeholder="Calle 2..." class="o_address_street" />
+                                <field name="city" placeholder="Ciudad" class="o_address_city" />
+                                <field name="state_id" class="o_address_state" placeholder="Provincia" options="{&quot;no_open&quot;: True}" />
+                                <field name="zip" placeholder="Código postal" class="o_address_zip" />
+                                <field name="country_id" placeholder="País" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" />
+                            </div>
+                            <field name="website" widget="url" placeholder="Ejemplo: https://www.exemax.com.ar" />
+                            <field name="lang_id" />
+                        </group>
+                        <group name="lead_info">
+                            <label for="contact_name" />
+                            <div class="o_row">
+                                <field name="contact_name" />
+                                <field name="title" placeholder="Título" domain="[]" options="{&quot;no_open&quot;: True}" />
+                            </div>
+
+                            <field name="email_state" invisible="1" />
+                            <field name="phone_state" invisible="1" />
+                            <field name="email_cc" groups="base.group_no_one" />
+                            <field name="function" />
+                            <label for="phone_group_lead_info" class="oe_inline" />
+                            <div class="o_row o_row_readonly">
+                                <field name="phone" invisible="1" id="phone_group_lead_info" widget="phone" />
+                            </div>
+                            <label for="mobile" class="oe_inline" />
+                            <div class="o_row o_row_readonly" >
+                                <field name="mobile"  invisible="1" widget="phone" string="Móvil" />
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Notas internas" name="internal_notes">
+                            <field name="description" placeholder="Agregar descripción..." />
+                        </page>
+                        <page name="extra" string="Información se seguimiento">
+                            <group>
+                                <group string="Correo electrónico" groups="base.group_no_one">
+                                    <field name="message_bounce" readonly="1" />
                                 </group>
-                            </page>
-                            <page name="lead" string="Extra Information" >
-                                <group>
-                                    <group string="Contact Information">
-                                        <field name="partner_name"/>
-                                        <label for="street_page_lead" string="Address"/>
-                                        <div class="o_address_format">
-                                            <field name="street" id="street_page_lead" placeholder="Street..." class="o_address_street"/>
-                                            <field name="street2" placeholder="Street 2..." class="o_address_street"/>
-                                            <field name="city" placeholder="City" class="o_address_city"/>
-                                            <field name="state_id" class="o_address_state" placeholder="State" options="{&quot;no_open&quot;: True}"/>
-                                            <field name="zip" placeholder="ZIP" class="o_address_zip"/>
-                                            <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
-                                        </div>
-                                        <field name="website" widget="url" placeholder="e.g. https://www.odoo.com"/>
-                                        <field name="lang_id" options="{'no_create': True}"/>
-                                    </group>
-                                    </group>
-                                </page>
-                            </notebook>
-                            </sheet>
-                        </form>
-                    </field>
-        </record>
+                                <group string="Seguimiento" name="categorization">
+                                    <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" />
+                                    <field name="campaign_id" />
+                                    <field name="medium_id" />
+                                    <field name="source_id" />
+                                    <field name="referred" />
+                                </group>
+                                <group string="Análisis">
+                                    <field name="date_open" />
+                                    <field name="date_closed" />
+                                </group>
+                            </group>
+                        </page>
+                        <page name="lead" string="Información adicional">
+                            <group>
+                                <group string="Información de contacto">
+                                    <field name="partner_name" />
+                                    <label for="street_page_lead" string="Dirección" />
+                                    <div class="o_address_format">
+                                        <field name="street" id="street_page_lead" placeholder="Calle..." class="o_address_street" />
+                                        <field name="street2" placeholder="Calle 2..." class="o_address_street" />
+                                        <field name="city" placeholder="Ciudad" class="o_address_city" />
+                                        <field name="state_id" class="o_address_state" placeholder="Provincia" options="{&quot;no_open&quot;: True}" />
+                                        <field name="zip" placeholder="Código postal" class="o_address_zip" />
+                                        <field name="country_id" placeholder="País" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" />
+                                    </div>
+                                    <field name="website" widget="url" placeholder="Ejemplo: https://www.exemax.com.ar" />
+                                    <field name="lang_id" options="{'no_create': True}" />
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
-	<!-- MENU -->
 
-	<menuitem
-         id="menu_srm"
-         name="SRM"
-         groups="sales_team.group_sale_salesman,sales_team.group_sale_manager"
-         sequence="7"/>
-
-        <menuitem
-        id="srm_menu_purchase"
-        name="Compras"
-        parent="menu_srm"
-        sequence="1"/>
-
-        <menuitem
-        id="purchase_team_menu_team_pipeline"
-        name="Pipeline"
-        parent="srm_menu_purchase"
-        action="action_srm_menu_parent"
-        groups="sales_team.group_sale_manager"
-        sequence="4"/>
-
-        <record id="action_srm_menu_parent" model="ir.actions.act_window">
-	   <field name="name">SRM</field>
-	   <field name="res_model">srm.lead</field>
-	   <field name="view_mode">kanban,form</field>
-	   <field name="view_id" ref="view_srm_lead_kanban"/>
-	   <field name="help" type="html">
-	       <p class="o_view_nocontent_smiling_face">
+    <record id="action_srm_menu_parent" model="ir.actions.act_window">
+        <field name="name">SRM</field>
+        <field name="res_model">srm.lead</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="view_id" ref="view_srm_lead_kanban" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
 	           SRM Lead
-	       </p>
-	   </field>
-	</record>
+	        </p>
+        </field>
+    </record>
+
+
+    <!-- MENU -->
+
+    <menuitem id="menu_srm" name="SRM" sequence="7" />
+    <!-- groups="sales_team.group_sale_manager" -->
+
+    <menuitem id="srm_purchase_menu" name="Compras" parent="menu_srm" sequence="10" />
+
+    <menuitem id="srm_reports_menu" name="Informes" parent="menu_srm" sequence="20" />
+
+    <menuitem id="srm_settings_menu" name="Configuracion" parent="menu_srm" sequence="30" />
+
+    <menuitem id="purchase_team_menu_team_pipeline" name="Pipeline" parent="srm_purchase_menu" action="action_srm_menu_parent" sequence="11" />
 
 </odoo>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<odoo>
+    <!--
+        srm.tag views
+    -->
+    <record id="srm_tag_view_form" model="ir.ui.view">
+        <field name="name">srm.tag.view.form</field>
+        <field name="model">srm.tag</field>
+        <field name="arch" type="xml">
+            <form string="Tags">
+                <sheet>
+                    <div class="oe_title">
+                        <div class="oe_edit_only">
+                            <label for="name"/>
+                        </div>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="color" required="True"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+   
+
+
+
+    <record id="srm_tag_view_tree" model="ir.ui.view">
+        <field name="name">srm.tag.view.tree</field>
+        <field name="model">srm.tag</field>
+        <field name="arch" type="xml">
+            <tree string="Tags" editable="bottom">
+                <field name="name"/>
+                <field name="color" widget="color_picker" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- Tags Configuration -->
+    <record id="srm_tag_action" model="ir.actions.act_window">
+        <field name="name">Tags</field>
+        <field name="res_model">srm.tag</field>
+        <field name="view_id" ref="srm_tag_view_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            Create new tags for your opportunities
+            </p><p>
+            Create tags that fit your business (product structure, sales type, etc.) to better manage and track your opportunities.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+    id="purchase_team_menu_team_tag"
+    name="Etiquetas"
+    parent="srm_settings_menu"
+    action="srm_tag_action"
+    sequence="35"/>
+
+</odoo>

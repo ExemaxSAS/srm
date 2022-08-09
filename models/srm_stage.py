@@ -38,7 +38,7 @@ class Stage(models.Model):
         help='Specific team that uses this stage. Other teams will not be able to see or use this stage.')
     fold = fields.Boolean('Folded in Pipeline',
         help='This stage is folded in the kanban view when there are no records in that stage to display.')
-
+    
     # This field for interface only
     #team_count = fields.Integer('team_count', compute='_compute_team_count')
 

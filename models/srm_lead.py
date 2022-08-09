@@ -32,27 +32,27 @@ class Srm(models.Model):
 
     # Description
     name = fields.Char(
-        'Opportunity', index=True, required=True, readonly=False, store=True)
-    user_id = fields.Many2one('res.users', string='Salesperson', index=True, tracking=True, default=lambda self: self.env.user)
-    user_email = fields.Char('User Email', related='user_id.email', readonly=True)
-    user_login = fields.Char('User Login', related='user_id.login', readonly=True)
-    company_id = fields.Many2one('res.company', string='Company', index=True, default=lambda self: self.env.company.id)
-    referred = fields.Char('Referred By')
-    description = fields.Text('Notes')
+        'Oportunidad', index=True, required=True, readonly=False, store=True)
+    user_id = fields.Many2one('res.users', string='Encargado de compras', index=True, tracking=True, default=lambda self: self.env.user)
+    user_email = fields.Char('Correo del usuario', related='user_id.email', readonly=True)
+    user_login = fields.Char('Usuario registrado', related='user_id.login', readonly=True)
+    company_id = fields.Many2one('res.company', string='Compañia', index=True, default=lambda self: self.env.company.id)
+    referred = fields.Char('Referido por')
+    description = fields.Text('Notas')
     active = fields.Boolean('Active', default=True, tracking=True)
     type = fields.Selection([
         ('lead', 'Lead'), ('opportunity', 'Opportunity')],
         index=True, required=True, tracking=15,
-        default='opportunity')
+        default='lead')
     priority = fields.Selection(
-        srm_stage.AVAILABLE_PRIORITIES, string='Priority', index=True,
+        srm_stage.AVAILABLE_PRIORITIES, string='Prioridad', index=True,
         default=srm_stage.AVAILABLE_PRIORITIES[0][0])
     #team_id = fields.Many2one(
     #    'crm.team', string='Sales Team', index=True, tracking=True,
     #    compute='_compute_team_id', readonly=False, store=True)
     stage_id = fields.Many2one(
-        'srm.stage', string='Stage', index=True, tracking=True, readonly=False, store=True,
-        copy=False, ondelete='restrict')
+        'srm.stage', string='Etapa', index=True, tracking=True, readonly=False, store=True,
+        copy=False, group_expand='_read_group_stage_ids', ondelete='restrict')
     kanban_state = fields.Selection([
         ('grey', 'No next activity planned'),
         ('red', 'Next activity late'),
@@ -61,23 +61,19 @@ class Srm(models.Model):
         'My Activities Deadline', compute='_compute_activity_date_deadline_my',
         search='_search_activity_date_deadline_my', compute_sudo=False,
         readonly=True, store=False, groups="base.group_user")
-    #tag_ids = fields.Many2many(
-    #    'crm.tag', 'crm_tag_rel', 'lead_id', 'tag_id', string='Tags',
-    #    help="Classify and analyze your lead/opportunity categories like: Training, Service")
-    color = fields.Integer('Color Index', default=0)
+    tag_ids = fields.Many2many(
+       'srm.tag', 'srm_tag_rel', 'lead_id', 'tag_id', string='Etiquetas',
+       help="Clasificar y analizar sus categorías de oportunidad como: Servicio, capacitación.")
+    color = fields.Integer('Color', default=0)
     # Opportunity specific
-    expected_revenue = fields.Monetary('Expected Revenue', currency_field='company_currency', tracking=True)
-    prorated_revenue = fields.Monetary('Prorated Revenue', currency_field='company_currency', store=True)
-    recurring_revenue = fields.Monetary('Recurring Revenues', currency_field='company_currency')
-    #recurring_plan = fields.Many2one('crm.recurring.plan', string="Recurring Plan")
-    #recurring_revenue_monthly = fields.Monetary('Expected MRR', currency_field='company_currency', store=True,
-    #                                           compute="_compute_recurring_revenue_monthly")
-    #recurring_revenue_monthly_prorated = fields.Monetary('Prorated MRR', currency_field='company_currency', store=True,
-    #                                           compute="_compute_recurring_revenue_monthly_prorated")
-    company_currency = fields.Many2one("res.currency", string='Currency', related='company_id.currency_id', readonly=True)
+    expected_revenue = fields.Monetary('Ingreso esperado', currency_field='company_currency', tracking=True)
+    prorated_revenue = fields.Monetary('Ingreso prorrateado', currency_field='company_currency', store=True)
+    recurring_revenue = fields.Monetary('Ingreso Recurrente', currency_field='company_currency')
+
+    company_currency = fields.Many2one("res.currency", string='Moneda', related='company_id.currency_id', readonly=True)
     # Dates
-    date_closed = fields.Datetime('Closed Date', readonly=True, copy=False)
-    date_action_last = fields.Datetime('Last Action', readonly=True)
+    date_closed = fields.Datetime('Fecha de cierre', readonly=True, copy=False)
+    date_action_last = fields.Datetime('Última Acción', readonly=True)
     date_open = fields.Datetime(
         'Assignment Date', readonly=True, store=True)
     day_open = fields.Float('Days to Assign', store=True)
@@ -85,26 +81,26 @@ class Srm(models.Model):
     date_last_stage_update = fields.Datetime(
         'Last Stage Update', index=True, readonly=True, store=True)
     date_conversion = fields.Datetime('Conversion Date', readonly=True)
-    date_deadline = fields.Date('Expected Closing', help="Estimate of the date on which the opportunity will be won.")
+    date_deadline = fields.Date('Expectativa de cierre', help="Estimate of the date on which the opportunity will be won.")
     # Supplier / contact
     partner_id = fields.Many2one(
-        'res.partner', string='Customer', index=True, tracking=10,
+        'res.partner', string='Proveedor', index=True, tracking=10,
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
         help="Linked partner (optional). Usually created when converting the lead. You can find a partner by its Name, TIN, Email or Internal Reference.")
     partner_is_blacklisted = fields.Boolean('Partner is blacklisted', related='partner_id.is_blacklisted', readonly=True)
     contact_name = fields.Char(
-        'Contact Name', tracking=30, readonly=False, store=True)
+        'Nombre de contacto', tracking=30, readonly=False, store=True)
     partner_name = fields.Char(
-        'Company Name', tracking=20, index=True, readonly=False, store=True,
+        'Nombre de compañia', tracking=20, index=True, readonly=False, store=True,
         help='The name of the future partner company that will be created while converting the lead into opportunity')
-    function = fields.Char('Job Position', readonly=False, store=True)
-    title = fields.Many2one('res.partner.title', string='Title', readonly=False, store=True)
+    function = fields.Char('Puesto de trabajo', readonly=False, store=True)
+    title = fields.Many2one('res.partner.title', string='Titulo', readonly=False, store=True)
     email_from = fields.Char(
-        'Email', tracking=40, index=True, inverse='_inverse_email_from', readonly=False, store=True)
+        'Correo electrónico', tracking=40, index=True, inverse='_inverse_email_from', readonly=False, store=True)
     phone = fields.Char(
-        'Phone', tracking=50,
+        'Teléfono', tracking=50,
         compute='_compute_phone', inverse='_inverse_phone', readonly=False, store=True)
-    mobile = fields.Char('Mobile', readonly=False, store=True)
+    mobile = fields.Char('Móvil', readonly=False, store=True)
     phone_mobile_search = fields.Char('Phone/Mobile', store=False, search='_search_phone_mobile_search')
     phone_state = fields.Selection([
         ('correct', 'Correct'),
@@ -112,21 +108,21 @@ class Srm(models.Model):
     email_state = fields.Selection([
         ('correct', 'Correct'),
         ('incorrect', 'Incorrect')], string='Email Quality', store=True)
-    website = fields.Char('Website', index=True, help="Website of the contact", readonly=False, store=True)
-    lang_id = fields.Many2one('res.lang', string='Language')
+    website = fields.Char('Sitio Web', index=True, help="Website of the contact", readonly=False, store=True)
+    lang_id = fields.Many2one('res.lang', string='Idioma')
     # Address fields
-    street = fields.Char('Street', readonly=False, store=True)
-    street2 = fields.Char('Street2', readonly=False, store=True)
-    zip = fields.Char('Zip', change_default=True, readonly=False, store=True)
-    city = fields.Char('City', readonly=False, store=True)
+    street = fields.Char('Calle', readonly=False, store=True)
+    street2 = fields.Char('Calle 2', readonly=False, store=True)
+    zip = fields.Char('Codigo postal', change_default=True, readonly=False, store=True)
+    city = fields.Char('Ciudad', readonly=False, store=True)
     state_id = fields.Many2one(
-        "res.country.state", string='State', readonly=False, store=True,
+        "res.country.state", string='Provincia', readonly=False, store=True,
         domain="[('country_id', '=?', country_id)]")
     country_id = fields.Many2one(
-        'res.country', string='Country', readonly=False, store=True)
+        'res.country', string='Pais', readonly=False, store=True)
     # Probability (Opportunity only)
     probability = fields.Float(
-        'Probability', group_operator="avg", copy=False, readonly=False, store=True)
+        'Probabilidad', group_operator="avg", copy=False, readonly=False, store=True)
     automated_probability = fields.Float('Automated Probability', readonly=True, store=True)
     is_automated_probability = fields.Boolean('Is automated probability?')
     # External records
@@ -152,6 +148,40 @@ class Srm(models.Model):
             if lead._get_partner_phone_update():
                 lead.partner_id.phone = lead.phone
 
+    def _inverse_email_from(self):
+        for lead in self:
+            if lead._get_partner_email_update():
+                lead.partner_id.email = lead.email_from
+
+    def _get_partner_email_update(self):
+        """Calculate if we should write the email on the related partner. When
+        the email of the lead / partner is an empty string, we force it to False
+        to not propagate a False on an empty string.
+
+        Done in a separate method so it can be used in both ribbon and inverse
+        and compute of email update methods.
+        """
+        self.ensure_one()
+        if self.partner_id and self.email_from != self.partner_id.email:
+            lead_email_normalized = tools.email_normalize(self.email_from) or self.email_from or False
+            partner_email_normalized = tools.email_normalize(self.partner_id.email) or self.partner_id.email or False
+            return lead_email_normalized != partner_email_normalized
+        return False
+
+    def _get_partner_phone_update(self):
+        """Calculate if we should write the phone on the related partner. When
+        the phone of the lead / partner is an empty string, we force it to False
+        to not propagate a False on an empty string.
+
+        Done in a separate method so it can be used in both ribbon and inverse
+        and compute of phone update methods.
+        """
+        self.ensure_one()
+        if self.partner_id and self.phone != self.partner_id.phone:
+            lead_phone_formatted = self.phone_format(self.phone) if self.phone else False or self.phone or False
+            partner_phone_formatted = self.phone_format(self.partner_id.phone) if self.partner_id.phone else False or self.partner_id.phone or False
+            return lead_phone_formatted != partner_phone_formatted
+        return False
 
     def _search_phone_mobile_search(self, operator, value):
         if len(value) <= 2:
@@ -316,3 +346,149 @@ class Srm(models.Model):
                 'date_deadline': date_deadline
             })
         return True
+
+    # TODO verificar lista de etapas necesarias
+    @api.model
+    def _read_group_stage_ids(self, stages, domain, order):
+        # retrieve team_id from the context and write the domain
+        # - ('id', 'in', stages.ids): add columns that should be present
+        # - OR ('fold', '=', False): add default columns that are not folded
+        # - OR ('team_ids', '=', team_id), ('fold', '=', False) if team_id: add team columns that are not folded
+
+        # team_id = self._context.get('default_team_id')
+        # if team_id:
+        #     search_domain = ['|', ('id', 'in', stages.ids), '|', ('team_id', '=', False), ('team_id', '=', team_id)]
+        # else:
+        #     search_domain = ['|', ('id', 'in', stages.ids), ('team_id', '=', False)]
+
+        search_domain=[]
+        # perform search
+        stage_ids = stages._search(search_domain, order=order, access_rights_uid=SUPERUSER_ID)
+        return stages.browse(stage_ids)
+
+
+    def action_sale_quotations_new(self):
+        if not self.partner_id:
+            return self.env["ir.actions.actions"]._for_xml_id("srm.srm_quotation_partner_action")
+        else:
+            return self.action_new_quotation()
+
+
+    def action_new_quotation(self):
+        action = self.env["ir.actions.actions"]._for_xml_id("srm.purchase_action_quotations_new")
+        action['context'] = {
+        #     'search_default_opportunity_id': self.id,
+        #     'default_opportunity_id': self.id,
+        #     'search_default_partner_id': self.partner_id.id,
+            'default_partner_id': self.partner_id.id,
+            'default_campaign_id': self.campaign_id.id,
+        #     'default_medium_id': self.medium_id.id,
+            'default_origin': self.name,
+            'default_source_id': self.source_id.id,
+            'default_company_id': self.company_id.id or self.env.company.id,
+            'default_tag_ids': [(6, 0, self.tag_ids.ids)]
+        }
+    #     if self.team_id:
+    #         action['context']['default_team_id'] = self.team_id.id,
+        if self.user_id:
+            action['context']['default_user_id'] = self.user_id.id
+        return action
+
+    def _find_matching_partner(self, email_only=False):
+        """ Try to find a matching partner with available information on the
+        lead, using notably customer's name, email, ...
+
+        :param email_only: Only find a matching based on the email. To use
+            for automatic process where ilike based on name can be too dangerous
+        :return: partner browse record
+        """
+        self.ensure_one()
+        partner = self.partner_id
+
+        if not partner and self.email_from:
+            partner = self.env['res.partner'].search([('email', '=', self.email_from)], limit=1)
+
+        if not partner and not email_only:
+            # search through the existing partners based on the lead's partner or contact name
+            # to be aligned with _create_customer, search on lead's name as last possibility
+            for customer_potential_name in [self[field_name] for field_name in ['partner_name', 'contact_name', 'name'] if self[field_name]]:
+                partner = self.env['res.partner'].search([('name', 'ilike', '%' + customer_potential_name + '%')], limit=1)
+                if partner:
+                    break
+
+        return partner
+
+    def handle_partner_assignment(self, force_partner_id=False, create_missing=True):
+        """ Update customer (partner_id) of leads. Purpose is to set the same
+        partner on most leads; either through a newly created partner either
+        through a given partner_id.
+
+        :param int force_partner_id: if set, update all leads to that customer;
+        :param create_missing: for leads without customer, create a new one
+          based on lead information;
+        """
+        for lead in self:
+            if force_partner_id:
+                lead.partner_id = force_partner_id
+            if not lead.partner_id and create_missing:
+                partner = lead._create_customer()
+                lead.partner_id = partner.id
+
+    def _create_customer(self):
+        """ Create a partner from lead data and link it to the lead.
+
+        :return: newly-created partner browse record
+        """
+        Partner = self.env['res.partner']
+        contact_name = self.contact_name
+        if not contact_name:
+            contact_name = Partner._parse_partner_name(self.email_from)[0] if self.email_from else False
+
+        if self.partner_name:
+            partner_company = Partner.create(self._prepare_customer_values(self.partner_name, is_company=True))
+        elif self.partner_id:
+            partner_company = self.partner_id
+        else:
+            partner_company = None
+
+        if contact_name:
+            return Partner.create(self._prepare_customer_values(contact_name, is_company=False, parent_id=partner_company.id if partner_company else False))
+
+        if partner_company:
+            return partner_company
+        return Partner.create(self._prepare_customer_values(self.name, is_company=False))
+
+    def _prepare_customer_values(self, partner_name, is_company=False, parent_id=False):
+        """ Extract data from lead to create a partner.
+
+        :param name : furtur name of the partner
+        :param is_company : True if the partner is a company
+        :param parent_id : id of the parent partner (False if no parent)
+
+        :return: dictionary of values to give at res_partner.create()
+        """
+        email_split = tools.email_split(self.email_from)
+        res = {
+            'name': partner_name,
+            'user_id': self.env.context.get('default_user_id') or self.user_id.id,
+            'comment': self.description,
+            # 'team_id': self.team_id.id, TODO ver si implementar equipos de compras
+            'parent_id': parent_id,
+            'phone': self.phone,
+            'mobile': self.mobile,
+            'email': email_split[0] if email_split else False,
+            'title': self.title.id,
+            'function': self.function,
+            'street': self.street,
+            'street2': self.street2,
+            'zip': self.zip,
+            'city': self.city,
+            'country_id': self.country_id.id,
+            'state_id': self.state_id.id,
+            'website': self.website,
+            'is_company': is_company,
+            'type': 'contact'
+        }
+        if self.lang_id:
+            res['lang'] = self.lang_id.code
+        return res

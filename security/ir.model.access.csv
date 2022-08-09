@@ -1,2 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_srm_srm,srm.srm,model_srm_srm,base.group_user,1,1,1,1
+access_srm_lead,srm.lead,model_srm_lead,sales_team.group_sale_manager,1,1,1,1
+access_srm_stage,srm.stage,model_srm_stage,sales_team.group_sale_manager,1,1,1,1
+access_srm_tag,srm.tag,model_srm_tag,sales_team.group_sale_manager,1,1,1,1
+access_srm_quotation_partner,srm.quotation.partner,model_srm_quotation_partner,sales_team.group_sale_manager,1,1,1,1
