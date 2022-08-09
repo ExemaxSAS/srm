@@ -1,4 +1,5 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8" ?>
+
 <odoo>
     <!--
         srm.tag views
@@ -27,6 +28,10 @@
         </field>
     </record>
 
+   
+
+
+
     <record id="srm_tag_view_tree" model="ir.ui.view">
         <field name="name">srm.tag.view.tree</field>
         <field name="model">srm.tag</field>
@@ -51,4 +56,12 @@
             </p>
         </field>
     </record>
+
+    <menuitem
+    id="purchase_team_menu_team_tag"
+    name="Etiquetas"
+    parent="srm_settings_menu"
+    action="srm_tag_action"
+    sequence="35"/>
+
 </odoo>

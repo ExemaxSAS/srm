@@ -20,10 +20,13 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
         'data/srm_stage_data.xml',
         'views/srm_lead.xml',
+        'views/srm_stage.xml',
         'views/srm_tag.xml',
+        'security/ir.model.access.csv',
+        'views/purchase_srm.xml',
+        'views/srm_quotation_partner.xml',
     ],
     # only loaded in demonstration mode
     'demo': [],
